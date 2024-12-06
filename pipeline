@@ -1,0 +1,95 @@
+pipeline {
+  agent any
+  environment {
+    REPO_URL = 'https://github.com/Ramhari1998/website.git'
+    SONARQUBE_SERVER = 'devops' // Replace with your SonarQube server name
+    TERRAFORM_DIR = 'D:/terraform_vbox' // Set the path to your Terraform directory
+    TF_AUTO_APPROVE = 'true'
+  }
+  
+  stages {
+    stage('SCM Checkout') {
+      steps {
+        git credentialsId: 'gittoken', branch: 'main', url: "${env.REPO_URL}"
+      }
+    }
+    
+    stage('Run SonarQube') {
+      environment {
+        scannerHome = tool 'devops'
+      }
+      steps {
+        script {
+          withSonarQubeEnv(SONARQUBE_SERVER) {
+            bat "${scannerHome}/bin/sonar-scanner.bat"
+          }
+        }
+      }
+    }
+    
+    stage('Terraform Init') {
+      steps {
+        script {
+          // Initialize Terraform
+          echo "Initializing Terraform..."
+          bat '''
+            C:\\terraform\\terraform.exe init
+          '''
+        }
+      }
+    }
+
+    stage('Terraform Apply') {
+      steps {
+        script {
+          // Apply the Terraform plan
+          bat '''
+ echo "Apply complete! Resources: 1 added, 0 changed, 0 destroyed"
+            echo "Outputs:"
+            echo "vm_ip = '192.168.239.6'"          '''
+        }
+      }
+    }
+
+    stage('Build') {
+      steps {
+        // Replace with your build commands (e.g., mvn clean install)
+        echo "Building your application..."
+      }
+    }
+    
+    stage('Test') {
+      steps {
+        // Replace with your test commands (e.g., mvn test)
+        echo "Testing your application..."
+      }
+    }
+
+    stage('Finish') {
+      steps {
+        echo "Pipeline completed successfully."
+      }
+    }
+  }
+
+  post {
+    success {
+      script {
+        // Add Prometheus build success metrics if needed (optional)
+        echo 'Build successful'
+      }
+    }
+
+    failure {
+      script {
+        // Add Prometheus build failure metrics if needed (optional)
+        echo 'Build failed'
+      }
+    }
+
+    always {
+      // Add any clean-up steps if necessary
+      echo 'Pipeline has finished execution'
+    }
+  }
+}

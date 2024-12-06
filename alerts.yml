@@ -1,0 +1,20 @@
+groups:
+  - name: Jenkins_alerts
+    rules:
+      - alert: JenkinsBuildFailure
+        expr: default_jenkins_builds_last_build_result{jenkins_job="devops"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Jenkins build failure detected for devops job"
+          description: "Jenkins job nimesh has failed"
+      
+      - alert: JenkinsBuildSuccess
+        expr: default_jenkins_builds_last_build_result{jenkins_job="devops"} == 1
+        for: 1m
+        labels:
+          severity: info
+        annotations:
+          summary: "Jenkins build success detected for devops job"
+          description: "Jenkins job devops has succeeded"
